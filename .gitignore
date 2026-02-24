@@ -224,3 +224,9 @@ debug_screenshots/
 # Claude Code
 .claude/
 .claude/settings.local.json
+
+# Python virtual environment
+lib64
+haneda/lib64
+pyvenv.cfg
+haneda/pyvenv.cfg
