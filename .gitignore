@@ -220,3 +220,6 @@ __marimo__/
 
 # Debug screenshots
 debug_screenshots/
+
+# Claude Code
+.claude/
