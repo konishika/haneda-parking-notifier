@@ -128,6 +128,61 @@ class TestMixed:
 
 
 # ---------------------------------------------------------------------------
+# テスト: 混雑 (konzatsu / congestion) → 空き扱いで "C" を表示
+# ---------------------------------------------------------------------------
+class TestCongested:
+    @pytest.mark.parametrize("css_class", ["konzatsu", "congestion"])
+    def test_congested_counts_as_available(self, browser, css_class):
+        """konzatsu/congestion は空き扱い (available_count に含まれる)"""
+        def find_element_side_effect(by, value):
+            if by == By.XPATH and value == TEST_CONFIG['calendar_path']:
+                return make_calendar_elem("3")
+            return make_day_elem(css_class)
+
+        browser.find_element.side_effect = find_element_side_effect
+
+        count, text = check_parking_availability(browser, TEST_CONFIG, TARGET_DATES)
+        assert count == 1
+
+    @pytest.mark.parametrize("css_class", ["konzatsu", "congestion"])
+    def test_congested_shows_C_not_O(self, browser, css_class):
+        """konzatsu/congestion のとき result_text は O でなく C"""
+        def find_element_side_effect(by, value):
+            if by == By.XPATH and value == TEST_CONFIG['calendar_path']:
+                return make_calendar_elem("3")
+            return make_day_elem(css_class)
+
+        browser.find_element.side_effect = find_element_side_effect
+
+        _, text = check_parking_availability(browser, TEST_CONFIG, TARGET_DATES)
+        assert "C" in text
+        assert "O" not in text
+        assert "X" not in text
+
+    def test_mixed_full_and_congested(self, browser):
+        """満車と混雑が混在: count=1, X と C が両方含まれる"""
+        dates = ["2026/03/18", "2026/03/19"]
+        classes = ["full", "konzatsu"]
+        call_index = {"n": 0}
+
+        def find_element_side_effect(by, value):
+            if by == By.XPATH and value == TEST_CONFIG['calendar_path']:
+                return make_calendar_elem("3")
+            elem = MagicMock()
+            elem.get_attribute.return_value = classes[call_index["n"] % len(classes)]
+            call_index["n"] += 1
+            return elem
+
+        browser.find_element.side_effect = find_element_side_effect
+
+        count, text = check_parking_availability(browser, TEST_CONFIG, dates)
+        assert count == 1
+        assert "X" in text
+        assert "C" in text
+        assert "O" not in text
+
+
+# ---------------------------------------------------------------------------
 # テスト: 翌月ボタンのクリック (月ナビゲーション)
 # ---------------------------------------------------------------------------
 class TestMonthNavigation:

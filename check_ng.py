@@ -3,9 +3,11 @@ from selenium import webdriver
 from selenium.webdriver.chrome import service as fs
 from webdriver_manager.chrome import ChromeDriverManager
 
+import argparse
 import time
 import datetime
 import os
+import tomllib
 
 from dotenv import load_dotenv
 
@@ -18,9 +20,6 @@ from linebot.v3.messaging import (
 )
 
 from parking_checker import check_parking_availability
-# ===
-target_date = "2026/03/18"
-target_period = 5
 sleeptime = 55
 
 load_dotenv()
@@ -28,43 +27,8 @@ access_token = os.environ.get('LINE_ACCESS_TOKEN')
 if not access_token:
     raise ValueError("LINE_ACCESS_TOKEN が設定されていません")
 
-targetDt = datetime.datetime.strptime(target_date,'%Y/%m/%d')
-
-target_dates = []
-for d in range(target_period):
-    target_dates.append(targetDt.strftime('%Y/%m/%d'))
-    targetDt = targetDt + datetime.timedelta(days=1)
-
-
-CONFIG_P4 = {
-    'name': 'Parking 4 ',
-    'url': "https://haneda-p4.jp/airport/",
-    'next_month_id': "p2next",
-    'calendar_path': '//div[@id="calendar01"]/div/table[@class="calendar_btm"]/tbody/tr/td[@class="publ"]',
-    'find_xpath': '//div[@id=\'calendar01\']/div/table[@class="calendar_waku"]/tbody/tr/td/span[text()="{day}"]/..',
-}
-CONFIG_P4P = {
-    'name': 'Parking 4P',
-    'url': "https://haneda-p4.jp/airport/",
-    'next_month_id': "p3next",
-    'calendar_path': '//div[@id="calendar02"]/div/table[@class="calendar_btm"]/tbody/tr/td[@class="priv"]',
-    'find_xpath': '//div[@id=\'calendar02\']/div/table[@class="calendar_waku"]/tbody/tr/td/span[text()="{day}"]/..',
-}
-CONFIG_P5 = {
-    'name': 'Parking 5 ',
-    'url': "https://pk-reserve.haneda-airport.jp/airport/entrance/0000.jsf",
-    'next_month_id': "_idJsp68:_idJsp76",
-    'calendar_path': '//div[@id="calendar01_body"]/input[@id="_idJsp68:_idJsp69"]/following-sibling::table[1]/tbody/tr/td[@class="publ"]',
-    'find_xpath': '//div[@id=\'calendar01_body\']/input[@id="_idJsp68:_idJsp69"]/following-sibling::table[@class="calendar_waku_body"]/tbody/tr/td[text()="{day}"]',
-}
-
-CONFIG_P5P = {
-    'name': 'Parking 5P',
-    'url': "https://pk-reserve.haneda-airport.jp/airport/entrance/0000.jsf",
-    'next_month_id': "_idJsp68:_idJsp88",
-    'calendar_path': '//div[@id="calendar01_body"]/input[@id="_idJsp68:_idJsp81"]/following-sibling::table[1]/tbody/tr/td[@class="priv"]',
-    'find_xpath': '//div[@id=\'calendar01_body\']/input[@id="_idJsp68:_idJsp81"]/following-sibling::table[@class="calendar_waku_body"]/tbody/tr/td[text()="{day}"]',
-}
+with open('config.toml', 'rb') as f:
+    config = tomllib.load(f)
 chromeDriver = fs.Service(executable_path=ChromeDriverManager().install())
 
 configuration = Configuration(
@@ -82,7 +46,7 @@ def send_line_msg(messageText):
         )
 
 
-def checkParkingAvailability(browser, config):
+def checkParkingAvailability(browser, config, target_dates, target_period):
     available_count, result_text = check_parking_availability(browser, config, target_dates)
     print(result_text)
     if available_count == target_period:
@@ -96,16 +60,37 @@ def create_browser():
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--date',   default='2026/03/18', help='開始日 (YYYY/MM/DD)')
+    parser.add_argument('--period', default=5, type=int,  help='チェックする日数')
+    parser.add_argument('--lots',   nargs='+', metavar='LOT',
+                        help=f'チェックする駐車場 (例: --lots P5 P4)  選択肢: {", ".join(config.keys())}')
+    args = parser.parse_args()
+
+    target_date = args.date
+    target_period = args.period
+    targetDt = datetime.datetime.strptime(target_date, '%Y/%m/%d')
+    target_dates = [
+        (targetDt + datetime.timedelta(days=d)).strftime('%Y/%m/%d')
+        for d in range(target_period)
+    ]
+
+    if args.lots:
+        unknown = [k for k in args.lots if k not in config]
+        if unknown:
+            parser.error(f'不明な駐車場: {", ".join(unknown)}  選択肢: {", ".join(config.keys())}')
+        selected = {k: config[k] for k in args.lots}
+    else:
+        selected = config
+
     send_line_msg("Hello Worlds")
     browser = create_browser()
     try:
         for i in range(12*60):
             try:
-                print (f"\nHaneda Airport Parking Reservation Infomation: {target_period} day(s) from {target_date}")
-                checkParkingAvailability(browser, CONFIG_P4)
-                checkParkingAvailability(browser, CONFIG_P4P)
-                checkParkingAvailability(browser, CONFIG_P5)
-                checkParkingAvailability(browser, CONFIG_P5P)
+                print(f"\nHaneda Airport Parking Reservation Infomation: {target_period} day(s) from {target_date}")
+                for cfg in selected.values():
+                    checkParkingAvailability(browser, cfg, target_dates, target_period)
             except Exception as e:
                 print(f"Error occurred: {e}")
                 print("Restarting browser...")

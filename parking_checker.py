@@ -54,11 +54,14 @@ def check_parking_availability(browser, config, target_dates):
             else:
                 raise Exception(f"月が見つかりませんでした: {month}")
 
-            find_xpath = config['find_xpath'].format(day=day)
+            find_xpath = config['find_xpath'].format(day=day,date=d_dt.strftime('%Y/%m/%d'))
             result_element = browser.find_element(by=By.XPATH, value=find_xpath)
             result_class = result_element.get_attribute("class")
             if "full" in result_class:
                 result_text = result_text + " X"
+            elif "konzatsu" in result_class or "congestion" in result_class:
+                available_count = available_count + 1
+                result_text = result_text + " C"
             else:
                 available_count = available_count + 1
                 result_text = result_text + " O"
