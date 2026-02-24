@@ -12,7 +12,7 @@ def check_parking_availability(browser, config, target_dates):
 
     Args:
         browser: Selenium WebDriver インスタンス
-        config: 駐車場設定 dict (name, url, next_month_id, calendar_path, find_xpath)
+        config: 駐車場設定 dict (name, url, next_button_id, month_xpath, day_xpath)
         target_dates: 確認対象日のリスト (例: ["2026/03/18", "2026/03/19"])
 
     Returns:
@@ -40,12 +40,11 @@ def check_parking_availability(browser, config, target_dates):
             max_tries = 3
             for _ in range(max_tries):
                 try:
-                    calendar_path = config['calendar_path']
-                    result_element = browser.find_element(by=By.XPATH, value=calendar_path)
+                    result_element = browser.find_element(by=By.XPATH, value=config['month_xpath'])
                     element_text = result_element.text
                     if month in element_text:
                         break
-                    next_button = browser.find_element(by=By.ID, value=config['next_month_id'])
+                    next_button = browser.find_element(by=By.ID, value=config['next_button_id'])
                     next_button.click()
                     time.sleep(1)
                 except StaleElementReferenceException:
@@ -54,8 +53,8 @@ def check_parking_availability(browser, config, target_dates):
             else:
                 raise Exception(f"月が見つかりませんでした: {month}")
 
-            find_xpath = config['find_xpath'].format(day=day,date=d_dt.strftime('%Y/%m/%d'))
-            result_element = browser.find_element(by=By.XPATH, value=find_xpath)
+            day_xpath = config['day_xpath'].format(day=day, date=d_dt.strftime('%Y/%m/%d'))
+            result_element = browser.find_element(by=By.XPATH, value=day_xpath)
             result_class = result_element.get_attribute("class")
             if "full" in result_class:
                 result_text = result_text + " X"

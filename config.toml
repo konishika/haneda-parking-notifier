@@ -1,46 +1,46 @@
 # 羽田空港 駐車場予約チェック 設定ファイル
-# find_xpath のプレースホルダー:
+# day_xpath のプレースホルダー:
 #   {day}  → 日番号 (例: "18")
 #   {date} → 日付文字列 (例: "2026/03/18")
 
 [P2]
-name          = "Parking 2"
-url           = "https://hnd-rsv.aeif.or.jp/airport2/app/toppage"
-next_month_id = "cal00_next"
-calendar_path = '//*[@id="cal00_title"]'
-find_xpath    = '//*[@id="0-0-{date}"]'
+name           = "Parking 2"
+url            = "https://hnd-rsv.aeif.or.jp/airport2/app/toppage"
+next_button_id = "cal00_next"
+month_xpath    = '//*[@id="cal00_title"]'
+day_xpath      = '//*[@id="0-0-{date}"]'
 
 [P3]
-name          = "Parking 3"
-url           = "https://hnd-rsv.aeif.or.jp/airport2/app/toppage"
-next_month_id = "cal10_next"
-calendar_path = '//*[@id="cal10_title"]'
-find_xpath    = '//*[@id="1-0-{date}"]'
+name           = "Parking 3"
+url            = "https://hnd-rsv.aeif.or.jp/airport2/app/toppage"
+next_button_id = "cal10_next"
+month_xpath    = '//*[@id="cal10_title"]'
+day_xpath      = '//*[@id="1-0-{date}"]'
 
 [P4]
-name          = "Parking 4 "
-url           = "https://haneda-p4.jp/airport/"
-next_month_id = "p2next"
-calendar_path = '//div[@id="calendar01"]/div/table[@class="calendar_btm"]/tbody/tr/td[@class="publ"]'
-find_xpath    = '''//div[@id='calendar01']/div/table[@class="calendar_waku"]/tbody/tr/td/span[text()="{day}"]/..'''
+name           = "Parking 4 "
+url            = "https://haneda-p4.jp/airport/"
+next_button_id = "p2next"
+month_xpath    = '//div[@id="calendar01"]/div/table[@class="calendar_btm"]/tbody/tr/td[@class="publ"]'
+day_xpath      = '''//div[@id='calendar01']/div/table[@class="calendar_waku"]/tbody/tr/td/span[text()="{day}"]/..'''
 
 [P4P]
-name          = "Parking 4P"
-url           = "https://haneda-p4.jp/airport/"
-next_month_id = "p3next"
-calendar_path = '//div[@id="calendar02"]/div/table[@class="calendar_btm"]/tbody/tr/td[@class="priv"]'
-find_xpath    = '''//div[@id='calendar02']/div/table[@class="calendar_waku"]/tbody/tr/td/span[text()="{day}"]/..'''
+name           = "Parking 4P"
+url            = "https://haneda-p4.jp/airport/"
+next_button_id = "p3next"
+month_xpath    = '//div[@id="calendar02"]/div/table[@class="calendar_btm"]/tbody/tr/td[@class="priv"]'
+day_xpath      = '''//div[@id='calendar02']/div/table[@class="calendar_waku"]/tbody/tr/td/span[text()="{day}"]/..'''
 
 [P5]
-name          = "Parking 5 "
-url           = "https://pk-reserve.haneda-airport.jp/airport/entrance/0000.jsf"
-next_month_id = "_idJsp68:_idJsp76"
-calendar_path = '//div[@id="calendar01_body"]/input[@id="_idJsp68:_idJsp69"]/following-sibling::table[1]/tbody/tr/td[@class="publ"]'
-find_xpath    = '''//div[@id='calendar01_body']/input[@id="_idJsp68:_idJsp69"]/following-sibling::table[@class="calendar_waku_body"]/tbody/tr/td[text()="{day}"]'''
+name           = "Parking 5 "
+url            = "https://pk-reserve.haneda-airport.jp/airport/entrance/0000.jsf"
+next_button_id = "_idJsp68:_idJsp76"
+month_xpath    = '//div[@id="calendar01_body"]/input[@id="_idJsp68:_idJsp69"]/following-sibling::table[1]/tbody/tr/td[@class="publ"]'
+day_xpath      = '''//div[@id='calendar01_body']/input[@id="_idJsp68:_idJsp69"]/following-sibling::table[@class="calendar_waku_body"]/tbody/tr/td[text()="{day}"]'''
 
 [P5P]
-name          = "Parking 5P"
-url           = "https://pk-reserve.haneda-airport.jp/airport/entrance/0000.jsf"
-next_month_id = "_idJsp68:_idJsp88"
-calendar_path = '//div[@id="calendar01_body"]/input[@id="_idJsp68:_idJsp81"]/following-sibling::table[1]/tbody/tr/td[@class="priv"]'
-find_xpath    = '''//div[@id='calendar01_body']/input[@id="_idJsp68:_idJsp81"]/following-sibling::table[@class="calendar_waku_body"]/tbody/tr/td[text()="{day}"]'''
+name           = "Parking 5P"
+url            = "https://pk-reserve.haneda-airport.jp/airport/entrance/0000.jsf"
+next_button_id = "_idJsp68:_idJsp88"
+month_xpath    = '//div[@id="calendar01_body"]/input[@id="_idJsp68:_idJsp81"]/following-sibling::table[1]/tbody/tr/td[@class="priv"]'
+day_xpath      = '''//div[@id='calendar01_body']/input[@id="_idJsp68:_idJsp81"]/following-sibling::table[@class="calendar_waku_body"]/tbody/tr/td[text()="{day}"]'''

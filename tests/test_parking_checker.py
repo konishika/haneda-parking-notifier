@@ -9,9 +9,9 @@ from parking_checker import check_parking_availability
 TEST_CONFIG = {
     'name': 'Test Parking',
     'url': 'http://example.com',
-    'next_month_id': 'next_btn',
-    'calendar_path': '//calendar',
-    'find_xpath': '//day[text()="{day}"]',
+    'next_button_id': 'next_btn',
+    'month_xpath': '//calendar',
+    'day_xpath': '//day[text()="{day}"]',
 }
 
 TARGET_DATES = ["2026/03/18"]  # 3月 → month = "3"
@@ -44,7 +44,7 @@ class TestAllFull:
     def test_available_count_is_zero(self, browser):
         """全日程が満車なら available_count が 0"""
         def find_element_side_effect(by, value):
-            if by == By.XPATH and value == TEST_CONFIG['calendar_path']:
+            if by == By.XPATH and value == TEST_CONFIG['month_xpath']:
                 return make_calendar_elem("3")  # 月が一致 → break
             return make_day_elem("full")         # 日付要素 → 満車
 
@@ -56,7 +56,7 @@ class TestAllFull:
     def test_result_text_contains_X(self, browser):
         """全日程が満車なら result_text に X が含まれる"""
         def find_element_side_effect(by, value):
-            if by == By.XPATH and value == TEST_CONFIG['calendar_path']:
+            if by == By.XPATH and value == TEST_CONFIG['month_xpath']:
                 return make_calendar_elem("3")
             return make_day_elem("full")
 
@@ -76,7 +76,7 @@ class TestAllAvailable:
         dates = ["2026/03/18", "2026/03/19"]
 
         def find_element_side_effect(by, value):
-            if by == By.XPATH and value == TEST_CONFIG['calendar_path']:
+            if by == By.XPATH and value == TEST_CONFIG['month_xpath']:
                 return make_calendar_elem("3")
             return make_day_elem("available")  # "full" を含まない
 
@@ -88,7 +88,7 @@ class TestAllAvailable:
     def test_result_text_contains_O(self, browser):
         """全日程が空きなら result_text に O が含まれる"""
         def find_element_side_effect(by, value):
-            if by == By.XPATH and value == TEST_CONFIG['calendar_path']:
+            if by == By.XPATH and value == TEST_CONFIG['month_xpath']:
                 return make_calendar_elem("3")
             return make_day_elem("available")
 
@@ -111,7 +111,7 @@ class TestMixed:
         call_index = {"n": 0}
 
         def find_element_side_effect(by, value):
-            if by == By.XPATH and value == TEST_CONFIG['calendar_path']:
+            if by == By.XPATH and value == TEST_CONFIG['month_xpath']:
                 return make_calendar_elem("3")
             # 日付要素はcall順に class を返す
             elem = MagicMock()
@@ -135,7 +135,7 @@ class TestCongested:
     def test_congested_counts_as_available(self, browser, css_class):
         """konzatsu/congestion は空き扱い (available_count に含まれる)"""
         def find_element_side_effect(by, value):
-            if by == By.XPATH and value == TEST_CONFIG['calendar_path']:
+            if by == By.XPATH and value == TEST_CONFIG['month_xpath']:
                 return make_calendar_elem("3")
             return make_day_elem(css_class)
 
@@ -148,7 +148,7 @@ class TestCongested:
     def test_congested_shows_C_not_O(self, browser, css_class):
         """konzatsu/congestion のとき result_text は O でなく C"""
         def find_element_side_effect(by, value):
-            if by == By.XPATH and value == TEST_CONFIG['calendar_path']:
+            if by == By.XPATH and value == TEST_CONFIG['month_xpath']:
                 return make_calendar_elem("3")
             return make_day_elem(css_class)
 
@@ -166,7 +166,7 @@ class TestCongested:
         call_index = {"n": 0}
 
         def find_element_side_effect(by, value):
-            if by == By.XPATH and value == TEST_CONFIG['calendar_path']:
+            if by == By.XPATH and value == TEST_CONFIG['month_xpath']:
                 return make_calendar_elem("3")
             elem = MagicMock()
             elem.get_attribute.return_value = classes[call_index["n"] % len(classes)]
@@ -192,7 +192,7 @@ class TestMonthNavigation:
         call_count = {"n": 0}
 
         def find_element_side_effect(by, value):
-            if by == By.XPATH and value == TEST_CONFIG['calendar_path']:
+            if by == By.XPATH and value == TEST_CONFIG['month_xpath']:
                 call_count["n"] += 1
                 if call_count["n"] == 1:
                     # 1回目: 別の月 ("2" = 2月) → 翌月ボタンをクリックさせる
@@ -200,7 +200,7 @@ class TestMonthNavigation:
                 else:
                     # 2回目: 対象月 ("3" = 3月) → break
                     return make_calendar_elem("3")
-            if by == By.ID and value == TEST_CONFIG['next_month_id']:
+            if by == By.ID and value == TEST_CONFIG['next_button_id']:
                 return MagicMock()  # 翌月ボタン
             return make_day_elem("available")
 
@@ -211,7 +211,7 @@ class TestMonthNavigation:
         # 翌月ボタンがクリックされたか確認
         next_btn_calls = [
             c for c in browser.find_element.call_args_list
-            if c == call(by=By.ID, value=TEST_CONFIG['next_month_id'])
+            if c == call(by=By.ID, value=TEST_CONFIG['next_button_id'])
         ]
         assert len(next_btn_calls) == 1
 
@@ -227,7 +227,7 @@ class TestStaleElementRetry:
 
         def find_element_side_effect(by, value):
             call_count["n"] += 1
-            if by == By.XPATH and value == TEST_CONFIG['calendar_path']:
+            if by == By.XPATH and value == TEST_CONFIG['month_xpath']:
                 if call_count["n"] == 1:
                     raise StaleElementReferenceException()
                 return make_calendar_elem("3")

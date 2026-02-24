@@ -8,9 +8,9 @@ CONFIG の XPath が正しく要素を取得できているか確認するデバ
 - ヘッドレスモードで動作し、各ステップでスクリーンショットを保存します。
 - 確認したい CONFIG と対象日付を下の "--- 設定 ---" セクションで変えてください。
 
-find_xpath のプレースホルダー:
+day_xpath のプレースホルダー:
     {day}  → 日番号 (例: "18")
-    {date} → 日付文字列 (例: "2026-03-18")
+    {date} → 日付文字列 (例: "2026/03/18")
 """
 import datetime
 import os
@@ -32,17 +32,17 @@ CONFIGS_TO_CHECK = [
     {
         'name': 'Parking 2',
         'url': 'https://hnd-rsv.aeif.or.jp/airport2/app/toppage',
-        'next_month_id': 'cal00_next',             # TODO: 翌月ボタンのid
-        'calendar_path': '//*[@id="cal00_title"]', # TODO: 月テキストを含む要素のXPath
-        'find_xpath': '//*[@id="0-0-{date}"]',     # TODO: 日付セルのXPath ({day} が日番号に置換される)
+        'next_button_id': 'cal00_next',             # TODO: 翌月ボタンのid
+        'month_xpath':    '//*[@id="cal00_title"]', # TODO: 月テキストを含む要素のXPath
+        'day_xpath':      '//*[@id="0-0-{date}"]',  # TODO: 日付セルのXPath ({day} が日番号に置換される)
     },
     # CONFIG_P3 (未定義: XPathを埋めてテストしてください)
     {
         'name': 'Parking 3',
         'url': 'https://hnd-rsv.aeif.or.jp/airport2/app/toppage',
-        'next_month_id': 'cal10_next',
-        'calendar_path': '//*[@id="cal10_title"]',
-        'find_xpath': '//*[@id="1-0-{date}"]',
+        'next_button_id': 'cal10_next',
+        'month_xpath':    '//*[@id="cal10_title"]',
+        'day_xpath':      '//*[@id="1-0-{date}"]',
     },
 ]
 
@@ -85,16 +85,16 @@ def check_xpath(browser, label, xpath, show_attr=None):
         return None
 
 
-def check_next_button(browser, next_month_id):
+def check_next_button(browser, next_button_id):
     """翌月ボタンを ID で検索して結果を表示する。"""
-    print(f"\n  [next_month_id]")
-    print(f"    id    : {next_month_id!r}")
-    if not next_month_id:
+    print(f"\n  [next_button_id]")
+    print(f"    id    : {next_button_id!r}")
+    if not next_button_id:
         print("    *** 未設定 ***")
         return
 
     try:
-        elem = browser.find_element(by=By.ID, value=next_month_id)
+        elem = browser.find_element(by=By.ID, value=next_button_id)
         text = elem.text.replace('\n', ' ')[:80]
         html = elem.get_attribute("outerHTML") or ""
         print(f"    found : YES")
@@ -140,22 +140,22 @@ def debug_config(browser, config, target_date):
     save_screenshot(browser, f"{safe_name}_01_loaded")
     print("\n■ ページロード完了。XPathを確認します...\n")
 
-    # calendar_path: 月テキストを含む要素
-    elem = check_xpath(browser, "calendar_path", config['calendar_path'])
+    # month_xpath: 月テキストを含む要素
+    elem = check_xpath(browser, "month_xpath", config['month_xpath'])
     if elem:
         highlight(browser, elem)
 
-    # next_month_id: 翌月ボタン
-    check_next_button(browser, config['next_month_id'])
+    # next_button_id: 翌月ボタン
+    check_next_button(browser, config['next_button_id'])
 
     # 対象月まで翌月ボタンをクリックして移動する
     for _ in range(6):  # 最大6ヶ月先まで試す
-        cal_elem = browser.find_elements(by=By.XPATH, value=config['calendar_path'])
+        cal_elem = browser.find_elements(by=By.XPATH, value=config['month_xpath'])
         if cal_elem and month_last in cal_elem[0].text:
             print(f"  → 対象月 (末尾={month_last!r}) を確認: {repr(cal_elem[0].text)}")
             break
         try:
-            next_btn = browser.find_element(by=By.ID, value=config['next_month_id'])
+            next_btn = browser.find_element(by=By.ID, value=config['next_button_id'])
             next_btn.click()
             time.sleep(1)  # ページ更新を待つ
             print(f"  → 翌月ボタンをクリック")
@@ -163,10 +163,10 @@ def debug_config(browser, config, target_date):
             print(f"  → 翌月ボタンのクリック失敗: {e}")
             break
 
-    # find_xpath: 日付セル ({day} と {date} の両方に対応)
-    raw_xpath = config['find_xpath']
-    find_xpath = raw_xpath.format(day=day, date=date_str) if raw_xpath else ''
-    elem = check_xpath(browser, f"find_xpath (day={day}, date={date_str})", find_xpath, show_attr="class")
+    # day_xpath: 日付セル ({day} と {date} の両方に対応)
+    raw_xpath = config['day_xpath']
+    day_xpath = raw_xpath.format(day=day, date=date_str) if raw_xpath else ''
+    elem = check_xpath(browser, f"day_xpath (day={day}, date={date_str})", day_xpath, show_attr="class")
     if elem:
         highlight(browser, elem)
     else:
