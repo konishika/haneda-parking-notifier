@@ -223,3 +223,4 @@ debug_screenshots/
 
 # Claude Code
 .claude/
+.claude/settings.local.json
