@@ -4,14 +4,14 @@
 #   {date} → 日付文字列 (例: "2026/03/18")
 
 [P2]
-name           = "Parking 2"
+name           = "Parking 2 "
 url            = "https://hnd-rsv.aeif.or.jp/airport2/app/toppage"
 next_button_id = "cal00_next"
 month_xpath    = '//*[@id="cal00_title"]'
 day_xpath      = '//*[@id="0-0-{date}"]'
 
 [P3]
-name           = "Parking 3"
+name           = "Parking 3 "
 url            = "https://hnd-rsv.aeif.or.jp/airport2/app/toppage"
 next_button_id = "cal10_next"
 month_xpath    = '//*[@id="cal10_title"]'
