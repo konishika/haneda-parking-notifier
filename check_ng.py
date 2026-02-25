@@ -29,7 +29,6 @@ if not access_token:
 
 with open('config.toml', 'rb') as f:
     config = tomllib.load(f)
-chromeDriver = fs.Service(executable_path=ChromeDriverManager().install())
 
 configuration = Configuration(
     access_token=os.environ.get('LINE_ACCESS_TOKEN')
@@ -56,7 +55,8 @@ def checkParkingAvailability(browser, config, target_dates, target_period):
 def create_browser():
     chrome_option = webdriver.ChromeOptions()
     chrome_option.add_argument('--headless')
-    return webdriver.Chrome(service=chromeDriver, options=chrome_option)
+    chrome_driver = fs.Service(executable_path=ChromeDriverManager().install())
+    return webdriver.Chrome(service=chrome_driver, options=chrome_option)
 
 
 def main():
