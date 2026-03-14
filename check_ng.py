@@ -81,7 +81,10 @@ def checkParkingAvailability(browser, config, target_dates, target_period):
 
 def create_browser():
     chrome_option = webdriver.ChromeOptions()
-    chrome_option.add_argument('--headless')
+    chrome_option.add_argument('--headless=new')       # GUIなし環境向け
+    chrome_option.add_argument('--no-sandbox')         # Linux サーバー向け
+    chrome_option.add_argument('--disable-dev-shm-usage')
+    chrome_option.add_argument('--window-size=1280,900')
     chrome_driver = fs.Service(executable_path=ChromeDriverManager().install())
     return webdriver.Chrome(service=chrome_driver, options=chrome_option)
 
