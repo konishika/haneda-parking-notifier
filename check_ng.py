@@ -7,7 +7,9 @@ import argparse
 import time
 import datetime
 import os
+import smtplib
 import tomllib
+from email.message import EmailMessage
 
 from dotenv import load_dotenv
 
@@ -18,14 +20,20 @@ from linebot.v3.messaging import (
     PushMessageRequest,
     TextMessage
 )
+from linebot.v3.messaging.exceptions import ApiException
 
 from parking_checker import check_parking_availability
 sleeptime = 55
+line_available = True
 
 load_dotenv()
 access_token = os.environ.get('LINE_ACCESS_TOKEN')
 if not access_token:
     raise ValueError("LINE_ACCESS_TOKEN が設定されていません")
+
+gmail_user     = os.environ.get('GMAIL_USER')
+gmail_password = os.environ.get('GMAIL_APP_PASSWORD')
+email_to       = os.environ.get('EMAIL_TO')
 
 with open('config.toml', 'rb') as f:
     config = tomllib.load(f)
@@ -34,7 +42,24 @@ configuration = Configuration(
     access_token=os.environ.get('LINE_ACCESS_TOKEN')
 )
 
+def send_email(subject, body):
+    if not (gmail_user and gmail_password and email_to):
+        return
+    msg = EmailMessage()
+    msg['Subject'] = subject
+    msg['From']    = gmail_user
+    msg['To']      = email_to
+    msg.set_content(body)
+    with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
+        smtp.starttls()
+        smtp.login(gmail_user, gmail_password)
+        smtp.send_message(msg)
+
+
 def send_line_msg(messageText):
+    global line_available
+    if not line_available:
+        return
     with ApiClient(configuration) as api_client:
         line_bot_api = MessagingApi(api_client)
         line_bot_api.push_message(
@@ -50,7 +75,9 @@ def checkParkingAvailability(browser, config, target_dates, target_period):
     print(result_text)
     if available_count == target_period:
         print("Great!!!!")
-        send_line_msg("Great chance at " + config['name'] + "!!")
+        msg = "Great chance at " + config['name'] + "!!"
+        send_line_msg(msg)
+        send_email("羽田駐車場 空き通知", msg)
 
 def create_browser():
     chrome_option = webdriver.ChromeOptions()
@@ -83,7 +110,16 @@ def main():
     else:
         selected = config
 
-    send_line_msg("Hello Worlds")
+    try:
+        send_line_msg("Hello Worlds")
+    except ApiException as e:
+        if e.status == 429:
+            global line_available
+            line_available = False
+            print("LINE送信上限に達しました。メール通知に切り替えます。")
+            send_email("羽田駐車場 通知開始（メール切り替え）", "LINE送信上限のためメール通知に切り替えました。")
+        else:
+            raise
     browser = create_browser()
     try:
         for i in range(12*60):
