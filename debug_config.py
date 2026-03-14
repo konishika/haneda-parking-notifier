@@ -12,6 +12,7 @@ day_xpath のプレースホルダー:
     {day}  → 日番号 (例: "18")
     {date} → 日付文字列 (例: "2026/03/18")
 """
+import base64
 import datetime
 import os
 import time
@@ -110,7 +111,12 @@ SCREENSHOT_DIR = "debug_screenshots"
 def save_screenshot(browser, name):
     os.makedirs(SCREENSHOT_DIR, exist_ok=True)
     path = os.path.join(SCREENSHOT_DIR, f"{name}.png")
-    browser.save_screenshot(path)
+    result = browser.execute_cdp_cmd("Page.captureScreenshot", {
+        "captureBeyondViewport": True,
+        "fromSurface": True,
+    })
+    with open(path, "wb") as f:
+        f.write(base64.b64decode(result["data"]))
     print(f"    screenshot: {path}")
 
 
@@ -144,6 +150,8 @@ def debug_config(browser, config, target_date):
     elem = check_xpath(browser, "month_xpath", config['month_xpath'])
     if elem:
         highlight(browser, elem)
+        save_screenshot(browser, f"{safe_name}_01_month_found")
+
 
     # next_button_id: 翌月ボタン
     check_next_button(browser, config['next_button_id'])
@@ -153,6 +161,8 @@ def debug_config(browser, config, target_date):
         cal_elem = browser.find_elements(by=By.XPATH, value=config['month_xpath'])
         if cal_elem and month_last in cal_elem[0].text:
             print(f"  → 対象月 (末尾={month_last!r}) を確認: {repr(cal_elem[0].text)}")
+            highlight(browser, cal_elem[0])
+            save_screenshot(browser, f"{safe_name}_01_next_month_found")
             break
         try:
             next_btn = browser.find_element(by=By.ID, value=config['next_button_id'])
@@ -198,8 +208,11 @@ def main():
 
     browser = webdriver.Chrome(service=chromeDriver, options=chrome_option)
     try:
-        for config in CONFIGS_TO_CHECK:
-            debug_config(browser, config, TARGET_DATE)
+        max_tries = 5
+        for _ in range(max_tries):
+            for config in CONFIGS_TO_CHECK:
+                debug_config(browser, config, TARGET_DATE)
+        time.sleep(10)
     finally:
         browser.quit()
         print(f"\nブラウザを閉じました。スクリーンショットは {SCREENSHOT_DIR}/ を確認してください。")
