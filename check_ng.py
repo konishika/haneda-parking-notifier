@@ -33,6 +33,9 @@ if not access_token:
 
 gmail_user     = os.environ.get('GMAIL_USER')
 gmail_password = os.environ.get('GMAIL_APP_PASSWORD')
+if not gmail_password:
+    raise ValueError("GMAIL_APP_PASSWORD が設定されていません")
+
 email_to       = os.environ.get('EMAIL_TO')
 
 with open('config.toml', 'rb') as f:
@@ -75,7 +78,7 @@ def checkParkingAvailability(browser, config, target_dates, target_period):
     print(result_text)
     if available_count == target_period:
         print("Great!!!!")
-        msg = "Great chance at " + config['name'] + "!!"
+        msg = "Great chance at " + config['name'] + "!!\n" + config['url']
         send_line_msg(msg)
         send_email("羽田駐車場 空き通知", msg)
 
