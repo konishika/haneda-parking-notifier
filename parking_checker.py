@@ -61,8 +61,8 @@ def check_parking_availability(browser, config, target_dates):
 #                    print(f"  → 月要素のテキスト: {repr(element_text)} (対象月: {month!r})")
                     if month in element_text:
                         break
-                    else:
-                        print(f"  → 対象{month}月が見つかりませんでした ")
+#                    else:
+#                        print(f"  → 対象{month}月が見つかりませんでした ")
                     next_button = browser.find_element(by=By.ID, value=config['next_button_id'])
                     #try:
                     next_button.click()
@@ -78,7 +78,7 @@ def check_parking_availability(browser, config, target_dates):
             day_xpath = config['day_xpath'].format(day=day, date=d_dt.strftime('%Y/%m/%d'))
             element = browser.find_element(by=By.XPATH, value=day_xpath)
             result_class = element.get_attribute("class")
-            if "full" in result_class:
+            if "full" in result_class or "unavailable" in result_class:
                 result_text = result_text + " X"
             elif "konzatsu" in result_class or "congestion" in result_class:
                 available_count = available_count + 1
