@@ -78,7 +78,7 @@ def check_parking_availability(browser, config, target_dates):
             day_xpath = config['day_xpath'].format(day=day, date=d_dt.strftime('%Y/%m/%d'))
             element = browser.find_element(by=By.XPATH, value=day_xpath)
             result_class = element.get_attribute("class")
-            if "full" in result_class or "unavailable" in result_class:
+            if not result_class or "full" in result_class or "unavailable" in result_class:
                 result_text = result_text + " X"
             elif "konzatsu" in result_class or "congestion" in result_class:
                 available_count = available_count + 1
