@@ -80,7 +80,7 @@ def checkParkingAvailability(browser, config, target_dates, target_period):
         print("空きあり！")
         msg = f"{config['name']} に空きがあります！\n{config['url']}"
         send_line_msg(msg)
-        send_email("羽田駐車場 空き通知", msg)
+        send_email(f"羽田駐車場 空き通知: {config['name']}", msg)
 
 def create_browser():
     chrome_option = webdriver.ChromeOptions()
