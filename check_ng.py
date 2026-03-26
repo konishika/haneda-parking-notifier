@@ -103,6 +103,9 @@ def main():
     target_date = args.date
     target_period = args.period
     targetDt = datetime.datetime.strptime(target_date, '%Y/%m/%d')
+    days_from_now = (targetDt - datetime.datetime.now()).days
+    if days_from_now > 30:
+        print(f"警告: 指定された日付 {target_date} は30日以上先です ({days_from_now}日後)")
     target_dates = [
         (targetDt + datetime.timedelta(days=d)).strftime('%Y/%m/%d')
         for d in range(target_period)
@@ -128,7 +131,7 @@ def main():
             raise
     browser = create_browser()
     try:
-        for i in range(12*60):
+        for _ in range(12*60):
             try:
                 print(f"\nHaneda Airport Parking Reservation Infomation: {target_period} day(s) from {target_date}")
                 for cfg in selected.values():
