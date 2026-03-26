@@ -77,8 +77,8 @@ def checkParkingAvailability(browser, config, target_dates, target_period):
     available_count, result_text = check_parking_availability(browser, config, target_dates)
     print(result_text)
     if available_count == target_period:
-        print("Great!!!!")
-        msg = "Great chance at " + config['name'] + "!!\n" + config['url']
+        print("空きあり！")
+        msg = f"{config['name']} に空きがあります！\n{config['url']}"
         send_line_msg(msg)
         send_email("羽田駐車場 空き通知", msg)
 
@@ -105,7 +105,7 @@ def main():
     targetDt = datetime.datetime.strptime(target_date, '%Y/%m/%d')
     days_from_now = (targetDt - datetime.datetime.now()).days
     if days_from_now > 30:
-        print(f"警告: 指定された日付 {target_date} は30日以上先です ({days_from_now}日後)")
+        print(f"警告: 指定された日付 {target_date} は30日以上先です。予約できないことに注意してください ({days_from_now}日後)")
     target_dates = [
         (targetDt + datetime.timedelta(days=d)).strftime('%Y/%m/%d')
         for d in range(target_period)
@@ -145,7 +145,11 @@ def main():
                     pass
                 browser = create_browser()
             time.sleep(sleeptime)
-        send_line_msg("12 hours done")
+        msg = "12時間の監視が終了しました。"
+        if line_available:
+            send_line_msg(msg)
+        else:
+            send_email("羽田駐車場 監視終了", msg)
     finally:
         browser.quit()
 
