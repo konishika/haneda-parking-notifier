@@ -23,7 +23,6 @@ from linebot.v3.messaging import (
 from linebot.v3.messaging.exceptions import ApiException
 
 from parking_checker import check_parking_availability
-sleeptime = 55
 line_available = True
 
 load_dotenv()
@@ -94,9 +93,11 @@ def create_browser():
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--date',   default='2026/03/18', help='開始日 (YYYY/MM/DD)')
-    parser.add_argument('--period', default=5, type=int,  help='チェックする日数')
-    parser.add_argument('--lots',   nargs='+', metavar='LOT',
+    parser.add_argument('--date',     default='2026/03/18', help='開始日 (YYYY/MM/DD)')
+    parser.add_argument('--period',   default=5, type=int,  help='チェックする日数')
+    parser.add_argument('--interval', default=55, type=int, help='チェック間隔（秒、デフォルト: 55）')
+    parser.add_argument('--hours',    default=12, type=float, help='監視時間（時間、デフォルト: 12）')
+    parser.add_argument('--lots',     nargs='+', metavar='LOT',
                         help=f'チェックする駐車場 (例: --lots P5 P4)  選択肢: {", ".join(config.keys())}')
     args = parser.parse_args()
 
@@ -129,9 +130,11 @@ def main():
             send_email("羽田駐車場 通知開始（メール切り替え）", "LINE送信上限のためメール通知に切り替えました。")
         else:
             raise
+    sleeptime = args.interval
+    max_iterations = int(args.hours * 3600 / sleeptime)
     browser = create_browser()
     try:
-        for _ in range(12*60):
+        for _ in range(max_iterations):
             try:
                 print(f"\nHaneda Airport Parking Reservation Infomation: {target_period} day(s) from {target_date}")
                 for cfg in selected.values():
@@ -145,7 +148,7 @@ def main():
                     pass
                 browser = create_browser()
             time.sleep(sleeptime)
-        msg = "12時間の監視が終了しました。"
+        msg = f"{args.hours}時間の監視が終了しました。"
         if line_available:
             send_line_msg(msg)
         else:

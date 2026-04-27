@@ -84,7 +84,9 @@ python check_ng.py --date 2026/08/10 --period 5 --lots P5 P5P
 |-----------|-----------|------|
 | `--date`  | `2026/03/18` | チェック開始日（YYYY/MM/DD 形式） |
 | `--period` | `5` | チェックする日数 |
-| `--lots`  | 全駐車場 | チェックする駐車場（例: `P5 P4`）。省略時は全駐車場 |
+| `--interval` | `55` | チェック間隔（秒）。P2・P3を監視する場合は長め（例: `120`）を推奨 |
+| `--hours` | `12` | 監視時間（時間） |
+| `--lots` | 全駐車場 | チェックする駐車場（例: `--lots P5 P4`）。省略時は全駐車場 |
 
 ### 実行例
 
@@ -94,6 +96,9 @@ python check_ng.py --date 2026/08/10 --period 5 --lots P5 P5P
 
 # 全駐車場を3日間チェック
 python check_ng.py --date 2026/08/10 --period 3
+
+# P2・P3 をアクセス間隔2分、6時間だけ監視
+python check_ng.py --date 2026/08/10 --period 5 --lots P2 P3 --interval 120 --hours 6
 ```
 
 ### 結果の見かた
