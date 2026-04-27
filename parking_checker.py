@@ -50,7 +50,7 @@ def check_parking_availability(browser, config, target_dates):
             month = '  ' + d_dt.strftime('%-m')
             month = month[-1:]
 
-            max_tries = 2
+            max_tries = d_dt.month - datetime.datetime.now().month + 1
             for _ in range(max_tries):
                 try:
                     element = browser.find_element(by=By.XPATH, value=config['month_xpath'])
