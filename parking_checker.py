@@ -50,7 +50,11 @@ def check_parking_availability(browser, config, target_dates):
             month = '  ' + d_dt.strftime('%-m')
             month = month[-1:]
 
-            max_tries = d_dt.month - datetime.datetime.now().month + 1
+            # 今の月から対象の月まで、何回「次の月」を押しうるか。**年をまたいで数える。**
+            # 月の数字だけを引くと、12月に翌年1月を調べるとき 1 - 12 + 1 = -10 になり、
+            # 1回も探さずに「月が見つかりません」で終わる（空きがあっても 0 日と返る）
+            now = datetime.datetime.now()
+            max_tries = (d_dt.year - now.year) * 12 + (d_dt.month - now.month) + 1
             for _ in range(max_tries):
                 try:
                     element = browser.find_element(by=By.XPATH, value=config['month_xpath'])
